@@ -11,13 +11,13 @@
 import fiona
 import subprocess
 import click
-import urlparse
+from urllib.parse import urlparse
 import os
 
 
 def parse_db_url(db_url):
     # provided a db url, return a dict with connection properties
-    u = urlparse.urlparse(db_url)
+    u = urlparse(db_url)
     db = {}
     db['database'] = u.path[1:]
     db['user'] = u.username
