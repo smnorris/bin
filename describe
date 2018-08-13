@@ -1,0 +1,58 @@
+#!/usr/bin/env python
+"""
+Describe specified data source.
+
+If describing a multi-layer data source, simply lists all layers available
+If describing a single layer, calls the command 'fio info --indent 2'
+
+$ describe -h
+usage: describe [-h] [-layer [LAYER]] infile
+
+Describe specified ogr compatible datasource.
+
+positional arguments:
+  infile          input file name
+
+optional arguments:
+  -h, --help      show this help message and exit
+  -layer [LAYER]  input layer (within infile)
+
+"""
+
+import fiona
+import json
+import argparse
+import sys
+import subprocess
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Describe specified ogr compatible datasource.")
+
+    parser.add_argument("infile",
+        help="input file name")
+    parser.add_argument("-layer",
+        nargs='?',
+        default=None,
+        help="input layer (within infile)")
+
+    args = parser.parse_args()
+
+    layers = fiona.listlayers(args.infile)
+    # if examining a multilayer source and no layer specified, list layers
+    # this returns essentially the same thing as ogrinfo
+    if len(layers) > 1 and not args.layer:
+        with sys.stdout as sink:
+            with fiona.open(args.infile, 'r', layer=args.layer) as source:
+                meta = source.meta.copy()
+                meta['name'] = args.infile
+                meta['layers'] = layers
+                del meta['schema']
+                del meta['crs']
+                json.dump(meta, sink, indent=2)
+    else:
+        command = "fio info {file} --indent 2 ".format(file=args.infile)
+        subprocess.call(command, shell=True)
+
+if __name__ == '__main__':
+    sys.exit(main())

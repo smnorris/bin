@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+"""
+Shapefiles...
+Save typing/clicking when deleting them
+"""
+
+import click
+import os
+
+
+@click.command()
+@click.argument('shapes', nargs=-1, type=click.Path(exists=True))
+def rmshp(shapes):
+    """
+    rm provided shapefiles
+    """
+    # trim file name extensions in case we're receiving them
+    for shp in set(shapes):
+        infile = os.path.splitext(shp)[0]
+        for suffix in ["shp", "dbf", "shx", "prj", "sbn", "sbx", "shp.xml", "cpg"]:
+            if os.path.exists(infile+"."+suffix):
+                os.remove(infile+"."+suffix)
+
+if __name__ == '__main__':
+    rmshp()
