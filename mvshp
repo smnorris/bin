@@ -21,7 +21,7 @@ def mvshp(infile, outfile):
     # trim file name extensions in case we're receiving them
     infile = os.path.splitext(infile)[0]
     outfile = os.path.splitext(outfile)[0]
-    for suffix in ["shp", "dbf", "shx", "prj", "sbn", "sbx", "shp.xml"]:
+    for suffix in ["shp", "dbf", "shx", "prj", "sbn", "sbx", "shp.xml", "cpg"]:
         if os.path.exists(infile+"."+suffix):
             shutil.move(infile+"."+suffix, outfile+"."+suffix)
 
