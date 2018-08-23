@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+
+import agate
+
+from csvkit.cli import CSVKitUtility
+import re
+import sys
+
+class CSVShampoo(CSVKitUtility):
+    description = 'Sanitize CSV header'
+    
+    def add_arguments(self):
+        self.argparser.add_argument('-n', '--dry-run', dest='dryrun', action='store_true',
+                                    help='Do not create output files. Information about what would have been done will be printed to STDERR.')
+
+    def main(self):
+        if self.additional_input_expected():
+            sys.stderr.write('No input file or piped data provided. Waiting for standard input:\n')
+
+        # read input column names, slugify and make sure first character is a-z
+        reader = agate.csv.DictReader(self.input_file, **self.reader_kwargs)
+        slugified = agate.utils.slugify(reader.fieldnames, ensure_unique=True, separator='_', max_length=31)
+
+        # begin column names with a-z characters
+        # https://www.postgresql.org/docs/current/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS
+        slugified = ['t'+x if not re.match('[a-z]', x) else x for x in slugified]
+        fieldnames = dict(zip(reader.fieldnames, slugified))
+
+        if self.args.dryrun:
+            self.output_file.write('New header: %s\n' % (','.join(slugified)))
+
+        else:
+            writer = agate.csv.DictWriter(self.output_file, fieldnames=slugified, **self.writer_kwargs)        
+            writer.writeheader()
+            for row in reader:
+                writer.writerow(dict((v, row[k]) for k, v in fieldnames.items()))
+
+
+def launch_new_instance():
+    utility = CSVShampoo()
+    utility.run()
+        
+
+if __name__ == '__main__':
+    launch_new_instance()
+
+    
+    
