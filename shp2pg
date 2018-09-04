@@ -1,0 +1,64 @@
+#!/usr/bin/env python
+
+"""
+Just a quick wrapper around ogr2ogr
+Send multiple shapefiles to postgis
+  - ensure they are BC Albers
+  - promote to multi to ensure consistency
+
+alternatively:
+https://gis.stackexchange.com/questions/136553/batch-load-multiple-shapefiles-to-postgis
+"""
+
+
+import os
+import subprocess
+from urllib.parse import urlparse
+
+import click
+
+
+def parse_db_url(db_url):
+    # provided a db url, return a dict with connection properties
+    u = urlparse(db_url)
+    db = {}
+    db['database'] = u.path[1:]
+    db['user'] = u.username
+    db['password'] = u.password
+    db['host'] = u.hostname
+    db['port'] = u.port
+    return db
+
+
+@click.command()
+@click.option('--schema', '-s', default='public')
+@click.option('--db_url', '-db', default=os.environ['DATABASE_URL'])
+@click.option('--s_srs', '-s_srs')
+@click.option('--t_srs', '-t_srs', default="EPSG:3005")
+@click.argument('inputs', nargs=-1, type=click.Path(exists=True))
+def shp2pg(schema, db_url, t_srs, s_srs, inputs):
+    """load multiple shapefiles to specified postgis db/schema"""
+    db = parse_db_url(db_url)
+    for shp in inputs:
+        command = ["ogr2ogr",
+                   "-f PostgreSQL",
+                   """PG:'host={h} user={u} dbname={db} password={pwd}' \
+                   """.format(h=db['host'],
+                              u=db['user'],
+                              db=db['database'],
+                              pwd=db['password']),
+                   "-lco OVERWRITE=YES",
+                   "-t_srs {s}".format(s=t_srs),
+                   "-lco SCHEMA={s}".format(s=schema),
+                   "-lco GEOMETRY_NAME=geom",
+                   "-nln "+os.path.split(shp)[1].lower().split(".")[0],
+                   "-nlt PROMOTE_TO_MULTI",
+                   shp]
+        if s_srs:
+            command.insert(3, "-s_srs {s}".format(s=s_srs))
+        cmd = " ".join(command)
+        click.echo("Running : "+cmd)
+        subprocess.call(cmd, shell=True)
+
+if __name__ == '__main__':
+    shp2pg()
