@@ -6,7 +6,7 @@ Send multiple shapefiles to postgis
   - ensure they are BC Albers
   - promote to multi to ensure consistency
 
-alternatively:
+Alternatively:
 https://gis.stackexchange.com/questions/136553/batch-load-multiple-shapefiles-to-postgis
 """
 

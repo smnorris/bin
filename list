@@ -1,0 +1,53 @@
+#!/usr/bin/env python
+
+"""
+list - because old arcinfo workstation habits die hard.
+
+Dump property data in a fiona accessible data source to stdout in csv format.
+
+
+This is the equivalent of:
+
+$ ogr2ogr -f CSV -nlt NONE /dev/stdout <input> <layer>
+
+or, with the -s option:
+
+$ ogr2ogr -f CSV -select "col1,col2" -nlt NONE /dev/stdout <input> <layer>
+"""
+
+import agate as csv
+import sys
+
+import click
+import fiona
+
+from signal import signal, SIGPIPE, SIG_DFL
+signal(SIGPIPE, SIG_DFL)
+
+
+@click.command()
+@click.argument('input', nargs=1, type=click.Path(exists=True))
+@click.argument('layer', required=False)
+@click.option('select', '-s')
+def listdata(input, layer, select):
+    with fiona.drivers():
+        with fiona.open(input, layer=layer) as src:
+            out = csv.csv_py2.Writer(sys.stdout)
+            info = src.meta
+            if select:
+                properties = select.split(",")
+                properties = [p.strip() for p in properties]
+                # check that provided fields are in data source
+                for p in properties:
+                    if p not in info['schema']['properties'].keys():
+                        return "Property "+p+" does not exist in data source"
+            else:
+                properties = info['schema']['properties'].keys()
+            out.writerow(properties)
+            for f in src:
+                row = [f["properties"][k] for k in properties]
+                out.writerow(row)
+
+
+if __name__ == '__main__':
+    listdata()
