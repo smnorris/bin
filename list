@@ -8,11 +8,11 @@ Dump property data in a fiona accessible data source to stdout in csv format.
 
 This is the equivalent of:
 
-$ ogr2ogr -f CSV -nlt NONE /dev/stdout <input> <layer>
+$ ogr2ogr -f CSV -nlt NONE /vsistdout/  <input> <layer>
 
 or, with the -s option:
 
-$ ogr2ogr -f CSV -select "col1,col2" -nlt NONE /dev/stdout <input> <layer>
+$ ogr2ogr -f CSV -select "col1,col2" -nlt NONE /vsistdout/ <input> <layer>
 """
 
 import agate
