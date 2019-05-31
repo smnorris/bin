@@ -32,39 +32,39 @@ def parse_db_url(db_url):
 @click.option('--schema', '-s', default="public")
 @click.option('--t_srs', '-t_srs', default="EPSG:3005")
 @click.option('--layers', '-l')
-@click.argument('in_files', nargs=-1, type=click.Path(exists=True))
-def gdb2pg(db_url, schema, t_srs, layers, in_files):
+@click.argument('in_file', type=click.Path(exists=True))
+def gdb2pg(in_file, db_url, schema, t_srs, layers):
     db = parse_db_url(db_url)
-    # process all gdbs supplied
-    for infile in in_files:
-        # what layers are present?
-        src_layers = fiona.listlayers(infile)
-        if layers:
-            out_layers = layers.split(",")
+
+    # what layers are present?
+    src_layers = fiona.listlayers(in_file)
+    if layers:
+        out_layers = layers.split(",")
+    else:
+        out_layers = src_layers
+    for layer in out_layers:
+        if layer in src_layers:
+            command = ["ogr2ogr",
+                       "--config PG_USE_COPY YES",
+                       "-t_srs "+t_srs,
+                       "-f PostgreSQL",
+                       'PG:"host={h} user={u} dbname={db} password={pwd}"'.format(
+                          h=db['host'],
+                          u=db['user'],
+                          db=db['database'],
+                          pwd=db['password']),
+                       "-lco OVERWRITE=YES",
+                       "-lco SCHEMA={schema}".format(schema=schema),
+                       "-lco GEOMETRY_NAME=geom",
+                       "-nln "+layer.lower(),
+                       in_file,
+                       layer]
+            cmd = " ".join(command)
+            click.echo("Running : "+cmd)
+            subprocess.call(cmd, shell=True)
         else:
-            out_layers = src_layers
-        for layer in out_layers:
-            if layer in src_layers:
-                command = ["ogr2ogr",
-                           "--config PG_USE_COPY YES",
-                           "-t_srs "+t_srs,
-                           "-f PostgreSQL",
-                           'PG:"host={h} user={u} dbname={db} password={pwd}"'.format(
-                              h=db['host'],
-                              u=db['user'],
-                              db=db['database'],
-                              pwd=db['password']),
-                           "-lco OVERWRITE=YES",
-                           "-lco SCHEMA={schema}".format(schema=schema),
-                           "-lco GEOMETRY_NAME=geom",
-                           "-nln "+layer.lower(),
-                           infile,
-                           layer]
-                cmd = " ".join(command)
-                click.echo("Running : "+cmd)
-                subprocess.call(cmd, shell=True)
-            else:
-                click.echo("Layer "+layer+" not present in source .gdb")
+            click.echo("Layer "+layer+" not present in source .gdb")
+
 
 if __name__ == '__main__':
     gdb2pg()
