@@ -22,15 +22,16 @@ import click
 import fiona
 
 from signal import signal, SIGPIPE, SIG_DFL
+
 signal(SIGPIPE, SIG_DFL)
 
 
 @click.command()
-@click.argument('input', nargs=1, type=click.Path(exists=True))
-@click.argument('layer', required=False)
-@click.option('select', '-s')
+@click.argument("input", nargs=1, type=click.Path(exists=True))
+@click.argument("layer", required=False)
+@click.option("select", "-s")
 def listdata(input, layer, select):
-    with fiona.drivers():
+    with fiona.Env():
         with fiona.open(input, layer=layer) as src:
             out = agate.csv.Writer(sys.stdout)
             info = src.meta
@@ -39,15 +40,15 @@ def listdata(input, layer, select):
                 properties = [p.strip() for p in properties]
                 # check that provided fields are in data source
                 for p in properties:
-                    if p not in info['schema']['properties'].keys():
-                        return "Property "+p+" does not exist in data source"
+                    if p not in info["schema"]["properties"].keys():
+                        return "Property " + p + " does not exist in data source"
             else:
-                properties = info['schema']['properties'].keys()
+                properties = info["schema"]["properties"].keys()
             out.writerow(properties)
             for f in src:
                 row = [f["properties"][k] for k in properties]
                 out.writerow(row)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     listdata()

@@ -8,6 +8,7 @@ import click
 import os
 import shutil
 
+
 @click.command()
 @click.argument('infile', nargs=1)
 @click.argument('outfile', nargs=1)
@@ -24,6 +25,7 @@ def mvshp(infile, outfile):
     for suffix in ["shp", "dbf", "shx", "prj", "sbn", "sbx", "shp.xml", "cpg"]:
         if os.path.exists(infile+"."+suffix):
             shutil.move(infile+"."+suffix, outfile+"."+suffix)
+
 
 if __name__ == '__main__':
     mvshp()

@@ -25,16 +25,16 @@ import argparse
 import sys
 import subprocess
 
+
 def main():
     parser = argparse.ArgumentParser(
-        description="Describe specified ogr compatible datasource.")
+        description="Describe specified ogr compatible datasource."
+    )
 
-    parser.add_argument("infile",
-        help="input file name")
-    parser.add_argument("-layer",
-        nargs='?',
-        default=None,
-        help="input layer (within infile)")
+    parser.add_argument("infile", help="input file name")
+    parser.add_argument(
+        "-layer", nargs="?", default=None, help="input layer (within infile)"
+    )
 
     args = parser.parse_args()
 
@@ -43,16 +43,17 @@ def main():
     # this returns essentially the same thing as ogrinfo
     if len(layers) > 1 and not args.layer:
         with sys.stdout as sink:
-            with fiona.open(args.infile, 'r', layer=args.layer) as source:
+            with fiona.open(args.infile, "r", layer=args.layer) as source:
                 meta = source.meta.copy()
-                meta['name'] = args.infile
-                meta['layers'] = layers
-                del meta['schema']
-                del meta['crs']
+                meta["name"] = args.infile
+                meta["layers"] = layers
+                del meta["schema"]
+                del meta["crs"]
                 json.dump(meta, sink, indent=2)
     else:
         command = "fio info {file} --indent 2 ".format(file=args.infile)
         subprocess.call(command, shell=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(main())

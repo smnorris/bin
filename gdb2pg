@@ -19,9 +19,10 @@ import os
 @click.option("--db_url", "-db", default=os.environ["DATABASE_URL"])
 @click.option("--schema", "-s", default="public")
 @click.option("--t_srs", "-t_srs", default="EPSG:3005")
+@click.option("--s_srs", "-s_srs")
 @click.option("--layers", "-l")
 @click.argument("in_file", type=click.Path(exists=True))
-def gdb2pg(in_file, db_url, schema, t_srs, layers):
+def gdb2pg(in_file, db_url, schema, t_srs, s_srs, layers):
     # parse the db url into individual variables
     u = urlparse(db_url)
     database = u.path[1:]
@@ -56,10 +57,12 @@ def gdb2pg(in_file, db_url, schema, t_srs, layers):
                 in_file,
                 layer,
             ]
+            if s_srs:
+                command = command + ["-s_srs", s_srs]
             click.echo("Running : " + " ".join(command))
             subprocess.run(command)
         else:
-            click.echo(f"Layer {layer} not present in source .gdb")
+            click.echo(f" Layer {layer} not present in source .gdb")
 
 
 if __name__ == "__main__":

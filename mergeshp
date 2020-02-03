@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+
+"""
+Shapefiles... merge them
+https://gis.stackexchange.com/questions/183606/how-do-i-merge-layers-using-an-external-python-script-to-call-the-processing-mod
+"""
+
+import click
+import fiona
+
+
+@click.command()
+@click.argument("inputs", nargs=-1, type=click.Path(exists=True))
+@click.option("--out_file", "-o", default="merged.shp", help="Output file name")
+def merge(inputs, out_file):
+    """Merge multiple shapefiles to output file"""
+    meta = fiona.open(inputs[0]).meta
+
+    with fiona.open(out_file, "w", **meta) as output:
+        for in_file in inputs:
+            click.echo("Adding : " + in_file)
+            for features in fiona.open(in_file):
+                output.write(features)
+
+
+if __name__ == "__main__":
+    merge()

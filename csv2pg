@@ -9,10 +9,10 @@ import pgdata
 
 
 @click.command()
-@click.option('--schema', '-s')
-@click.option('--encoding', '-e')
-@click.option('--db_url', '-db', default=os.environ['DATABASE_URL'])
-@click.argument('inputs', nargs=-1, type=click.Path(exists=True))
+@click.option("--schema", "-s")
+@click.option("--encoding", "-e")
+@click.option("--db_url", "-db", default=os.environ["DATABASE_URL"])
+@click.argument("inputs", nargs=-1, type=click.Path(exists=True))
 def csv2pg(schema, encoding, db_url, inputs):
     """load multiple files to specified schema in default postgis db"""
     db = pgdata.connect(schema=schema)
@@ -20,17 +20,19 @@ def csv2pg(schema, encoding, db_url, inputs):
         table = os.path.splitext(os.path.split(f)[1])[0]
         # delete the table if it already exists
         db[table].drop()
-        command = ["csvsql",
-                   "--db {db}".format(db=db_url),
-                   "--table {t}".format(t=table),
-                   "--insert {csv}".format(csv=f),
-                   "--db-schema {s}".format(s=schema)]
+        command = [
+            "csvsql",
+            "--db {db}".format(db=db_url),
+            "--table {t}".format(t=table),
+            "--insert {csv}".format(csv=f),
+            "--db-schema {s}".format(s=schema),
+        ]
         if encoding:
-            command.append("-e "+encoding)
+            command.append("-e " + encoding)
         cmd = " ".join(command)
-        click.echo("Running : "+cmd)
+        click.echo("Running : " + cmd)
         subprocess.call(cmd, shell=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     csv2pg()
