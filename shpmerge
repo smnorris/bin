@@ -3,6 +3,11 @@
 """
 Shapefiles... merge them
 https://gis.stackexchange.com/questions/183606/how-do-i-merge-layers-using-an-external-python-script-to-call-the-processing-mod
+
+OR, just use this:
+
+    alias shpmerge='ogrmerge.py -single -o merged.shp -src_layer_field_name source'
+
 """
 
 import click
