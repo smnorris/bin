@@ -2,7 +2,7 @@
 
 tmp=~/Downloads
 
-wget --trust-server-names -qNP "$tmp" https://pub.data.gov.bc.ca/datasets/2ebb35d8-c82f-4a17-9c96-612ac3532d55/VEG_COMP_LYR_R1_POLY.gdb.zip
+wget --trust-server-names -qNP "$tmp" https://pub.data.gov.bc.ca/datasets/02dba161-fdb7-48ae-a4bb-bd6ef017c36d/current/VEG_COMP_LYR_R1_POLY_2019.gdb.zip
 
 # mac unzip can't handle really big files
 # use 7zip instead http://mylescarrick.com/post/3195382919/unzipping-massive-files-on-osx
