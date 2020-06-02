@@ -7,7 +7,8 @@ wget --trust-server-names -qNP "$tmp" https://pub.data.gov.bc.ca/datasets/02dba1
 # mac unzip can't handle really big files
 # use 7zip instead http://mylescarrick.com/post/3195382919/unzipping-massive-files-on-osx
 # install 7zip with this:   > brew install p7zip
-7z x $tmp/VEG_COMP_LYR_R1_POLY.gdb.zip
+# (or consider ditto - https://superuser.com/questions/114011/extract-large-zip-file-50-gb-on-mac-os-x)
+7z x $tmp/VEG_COMP_LYR_R1_POLY_2019.gdb.zip
 
 psql -c "CREATE SCHEMA IF NOT EXISTS whse_forest_vegetation"
 
@@ -30,7 +31,7 @@ ogr2ogr \
    -lco FID64=TRUE \
    -nln veg_comp_lyr_r1_poly \
    VEG_COMP_LYR_R1_POLY.gdb \
-   WHSE_FOREST_VEGETATION_2018_VEG_COMP_LYR_R1_POLY
+   VEG_COMP_LYR_R1_POLY
 
 # with data loaded, create indexes
 echo "Creating veg attribute indexes"
@@ -57,6 +58,5 @@ psql --single-transaction --dbname=$PGDATABASE --quiet --command="
 CLUSTER whse_forest_vegetation.veg_comp_lyr_r1_poly USING veg_comp_lyr_r1_poly_geom_idx;"
 
 # cleanup
-rm "$tmp/veg_comp_lyr_r1_poly.gdb.zip"
+rm "$tmp/veg_comp_lyr_r1_poly_2019.gdb.zip"
 rm -r VEG_COMP_LYR_R1_POLY.gdb
-
