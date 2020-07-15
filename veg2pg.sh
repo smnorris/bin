@@ -8,7 +8,13 @@ wget --trust-server-names -qNP "$tmp" https://pub.data.gov.bc.ca/datasets/02dba1
 # use 7zip instead http://mylescarrick.com/post/3195382919/unzipping-massive-files-on-osx
 # install 7zip with this:   > brew install p7zip
 # (or consider ditto - https://superuser.com/questions/114011/extract-large-zip-file-50-gb-on-mac-os-x)
-7z x $tmp/VEG_COMP_LYR_R1_POLY_2019.gdb.zip
+7z x $tmp/VEG_COMP_LYR_R1_POLY_2019.gdb.zip -o $tmp
+
+# on linux, 7zip still seems to have issues.
+# this seems to work:
+# https://stackoverflow.com/questions/31481701/how-to-extract-files-from-a-large-30gb-zip-file-on-linux-server
+#zip -FF VEG_COMP_LYR_R1_POLY_2019.gdb.zip --out tmp.zip -fz
+#unzip tmp.zip
 
 psql -c "CREATE SCHEMA IF NOT EXISTS whse_forest_vegetation"
 
@@ -23,13 +29,12 @@ ogr2ogr \
    -dim XY \
    -f PostgreSQL \
    PG:"$PGOGR" \
-   -lco OVERWRITE=YES \
-   -lco SCHEMA=whse_forest_vegetation \
+   -overwrite \
    -lco GEOMETRY_NAME=geom \
    -lco SPATIAL_INDEX=NONE \
    -lco FID=FEATURE_ID \
    -lco FID64=TRUE \
-   -nln veg_comp_lyr_r1_poly \
+   -nln whse_forest_vegetation.veg_comp_lyr_r1_poly \
    VEG_COMP_LYR_R1_POLY.gdb \
    VEG_COMP_LYR_R1_POLY
 
