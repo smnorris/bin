@@ -1,14 +1,17 @@
-# DRA - WFS is unreliable for such a large dataset
+#!/bin/bash
+set -euxo pipefail
 
-tmp=~/tmp
+# load DRA to postgis
 
-wget --trust-server-names -qNP "$tmp" ftp://ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/DRA_Public/dgtl_road_atlas.gdb.zip
+TMP=~/tmp
+
+wget --trust-server-names -qNP "$TMP" ftp://ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/DRA_Public/dgtl_road_atlas.gdb.zip
 
 # mac unzip can't handle really big files
 # use 7zip instead http://mylescarrick.com/post/3195382919/unzipping-massive-files-on-osx
 # install 7zip with this:   > brew install p7zip
 # (or consider ditto - https://superuser.com/questions/114011/extract-large-zip-file-50-gb-on-mac-os-x)
-unzip $tmp/dgtl_road_atlas.gdb.zip -d $tmp
+unzip $TMP/dgtl_road_atlas.gdb.zip -d $TMP
 
 psql -c "CREATE SCHEMA IF NOT EXISTS whse_basemapping"
 
@@ -32,5 +35,5 @@ ogr2ogr \
 # probably want to index the names for full text search...
 
 # cleanup
-rm "$tmp/dgtl_road_atlas.gdb.zip"
-rm -r $tmp/dgtl_road_atlas.gdb
+rm "$TMP/dgtl_road_atlas.gdb.zip"
+rm -r $TMP/dgtl_road_atlas.gdb

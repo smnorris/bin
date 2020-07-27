@@ -1,8 +1,13 @@
-tmp=~/tmp
+#!/bin/bash
+set -euxo pipefail
 
-wget --trust-server-names -qNP "$tmp" https://pub.data.gov.bc.ca/datasets/4cf233c2-f020-4f7a-9b87-1923252fbc24/pmbc_parcel_fabric_poly_svw.zip
+# load parcel fabric to postgis
 
-unzip $tmp/pmbc_parcel_fabric_poly_svw.zip -d $tmp
+TMP=~/tmp
+
+wget --trust-server-names -qNP "$TMP" https://pub.data.gov.bc.ca/datasets/4cf233c2-f020-4f7a-9b87-1923252fbc24/pmbc_parcel_fabric_poly_svw.zip
+
+unzip $TMP/pmbc_parcel_fabric_poly_svw.zip -d $TMP
 
 psql -c "CREATE SCHEMA IF NOT EXISTS whse_cadastre"
 
@@ -18,9 +23,9 @@ ogr2ogr \
    -lco GEOMETRY_NAME=geom \
    -lco FID=PARCEL_FABRIC_POLY_ID \
    -nln whse_cadastre.pmbc_parcel_fabric_poly_svw \
-   tmp/pmbc_parcel_fabric_poly_svw.gdb \
+   $TMP/pmbc_parcel_fabric_poly_svw.gdb \
    pmbc_parcel_fabric_poly_svw
 
 # cleanup
-rm $tmp/pmbc_parcel_fabric_poly_svw.zip
-rm -r $tmp/pmbc_parcel_fabric_poly_svw.gdb
+rm $TMP/pmbc_parcel_fabric_poly_svw.zip
+rm -r $TMP/pmbc_parcel_fabric_poly_svw.gdb

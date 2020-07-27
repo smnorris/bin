@@ -1,14 +1,17 @@
-# forest cover
+#!/bin/bash
+set -euxo pipefail
 
-tmp=~/Downloads
+# load forest cover to postgis
 
-wget --trust-server-names -qNP "$tmp" https://pub.data.gov.bc.ca/datasets/02dba161-fdb7-48ae-a4bb-bd6ef017c36d/current/VEG_COMP_LYR_R1_POLY_2019.gdb.zip
+TMP=~/Downloads
+
+wget --trust-server-names -qNP "$TMP" https://pub.data.gov.bc.ca/datasets/02dba161-fdb7-48ae-a4bb-bd6ef017c36d/current/VEG_COMP_LYR_R1_POLY_2019.gdb.zip
 
 # mac unzip can't handle really big files
 # use 7zip instead http://mylescarrick.com/post/3195382919/unzipping-massive-files-on-osx
 # install 7zip with this:   > brew install p7zip
 # (or consider ditto - https://superuser.com/questions/114011/extract-large-zip-file-50-gb-on-mac-os-x)
-7z x $tmp/VEG_COMP_LYR_R1_POLY_2019.gdb.zip -o $tmp
+7z x $TMP/VEG_COMP_LYR_R1_POLY_2019.gdb.zip -o $TMP
 
 # on linux, 7zip still seems to have issues.
 # this seems to work:
@@ -63,5 +66,5 @@ psql --single-transaction --dbname=$PGDATABASE --quiet --command="
 CLUSTER whse_forest_vegetation.veg_comp_lyr_r1_poly USING veg_comp_lyr_r1_poly_geom_idx;"
 
 # cleanup
-rm "$tmp/veg_comp_lyr_r1_poly_2019.gdb.zip"
+rm "$TMP/veg_comp_lyr_r1_poly_2019.gdb.zip"
 rm -r VEG_COMP_LYR_R1_POLY.gdb
