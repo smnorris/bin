@@ -12,7 +12,7 @@ wget --trust-server-names -qNP "$TMP" https://pub.data.gov.bc.ca/datasets/02dba1
 wget --trust-server-names -qNP "$TMP" https://pub.data.gov.bc.ca/datasets/02dba161-fdb7-48ae-a4bb-bd6ef017c36d/2018/VEG_COMP_LYR_R1_POLY_2018.gdb.zip
 
 
-# just unzipping the files is problematic, zip doesn't like the large archives.
+# Unzipping the files is problematic, zip doesn't like the large archives.
 # This temp file workaround does the job:
 # https://stackoverflow.com/questions/31481701/how-to-extract-files-from-a-large-30gb-zip-file-on-linux-server
 
@@ -99,10 +99,3 @@ do
    CREATE INDEX ON whse_forest_vegetation.$TABLE (map_id);
    CREATE INDEX ON whse_forest_vegetation.$TABLE USING GIST (geom);"
 done
-
-# don't bother clustering, likely not worth it unless doing lots of work with this data
-# Cluster records on disk based on index
-# http://postgis.net/docs/performance_tips.html#database_clustering
-#psql --single-transaction --dbname=$PGDATABASE --quiet --command="
-#CLUSTER whse_forest_vegetation.veg_comp_lyr_r1_poly USING veg_comp_lyr_r1_poly_geom_idx;"
-
