@@ -4,7 +4,7 @@
 # note: personal use, in production this should be better validated
 set -e
 
-REPO_DIR=$HOME/repo
+REPO_DIR=/home/snorris/repo
 REPO_NAME=$1.git
 NEW_REPO=$REPO_DIR/$REPO_NAME
 
