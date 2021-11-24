@@ -5,7 +5,6 @@ save typing
 import os
 import click
 import subprocess
-import pgdata
 
 
 @click.command()
@@ -15,17 +14,15 @@ import pgdata
 @click.argument("inputs", nargs=-1, type=click.Path(exists=True))
 def csv2pg(schema, encoding, db_url, inputs):
     """load multiple files to specified schema in default postgis db"""
-    db = pgdata.connect(schema=schema)
     for f in inputs:
         table = os.path.splitext(os.path.split(f)[1])[0]
-        # delete the table if it already exists
-        db[table].drop()
         command = [
             "csvsql",
             "--db {db}".format(db=db_url),
             "--table {t}".format(t=table),
             "--insert {csv}".format(csv=f),
             "--db-schema {s}".format(s=schema),
+            "--overwrite"
         ]
         if encoding:
             command.append("-e " + encoding)
