@@ -34,7 +34,7 @@ if [ ! -d "$NEW_REPO" ]; then
     exit $?
 fi
 
-cd $NEW_REPO && git init --bare 2>&1
+cd $NEW_REPO && git init --bare -b main 2>&1
 
 if [ ! -d "$HOOKS_DIR" ]; then
     echo -e "$HOOKS_DIR not found, did git init --bare succeed?\n"
