@@ -4,7 +4,7 @@
 # note: personal use, in production this should be better validated
 set -e
 
-REPO_DIR=/home/snorris/repo
+REPO_DIR=/var/repo
 REPO_NAME=$1.git
 NEW_REPO=$REPO_DIR/$REPO_NAME
 
@@ -59,9 +59,9 @@ echo "GIT_WORK_TREE=$WORKING_DIR git checkout -f" >> $POST_RECEIVE
 
 echo -e "All done, now run the following on your localhost: "
 echo -e "  git remote add origin ssh://$USER@$DOMAIN$NEW_REPO "
-echo -e "  git push origin +master:refs/heads/master "
+echo -e "  git push origin +main:refs/heads/main "
 echo -e "\nAnd to add a git repo: "
 echo -e "  git remote add git git@github.com:$GITHUB_USER/$REPO_NAME"
-echo -e "  git push -u git master"
+echo -e "  git push -u git main"
 
 exit 0
