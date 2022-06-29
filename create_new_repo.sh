@@ -13,9 +13,9 @@ POST_RECEIVE=$HOOKS_DIR/post-receive
 
 WORKING_DIR=$2
 
-USER=snorris
-DOMAIN=hillcrestgeo.ca
-GITHUB_USER=smnorris
+USER=$USER
+DOMAIN="<ip/domain>"
+GITHUB_USER="<github_user>"
 
 if [ ! -d "$REPO_DIR" ]; then
     echo -e "$REPO_DIR does not exist, create it first.\n"
@@ -60,7 +60,7 @@ echo "GIT_WORK_TREE=$WORKING_DIR git checkout -f" >> $POST_RECEIVE
 echo -e "All done, now run the following on your localhost: "
 echo -e "  git remote add origin ssh://$USER@$DOMAIN$NEW_REPO "
 echo -e "  git push origin +main:refs/heads/main "
-echo -e "\nAnd to add a git repo: "
+echo -e "\nAnd to also add a github remote: "
 echo -e "  git remote add git git@github.com:$GITHUB_USER/$REPO_NAME"
 echo -e "  git push -u git main"
 
