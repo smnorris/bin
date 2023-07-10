@@ -1,101 +1,45 @@
 #!/bin/bash
 set -euxo pipefail
 
-# load BC forest cover to postgis
+# ** note the file name changes yearly **
+year=$(date +'%Y')
 
-TMP=~/Downloads
+# download file
+wget --trust-server-names -qNP /tmp \
+  https://pub.data.gov.bc.ca/datasets/02dba161-fdb7-48ae-a4bb-bd6ef017c36d/current/VEG_COMP_LYR_R1_POLY_$year.gdb.zip
 
-psql -c "CREATE SCHEMA IF NOT EXISTS whse_forest_vegetation"
-
-wget --trust-server-names -qNP "$TMP" https://pub.data.gov.bc.ca/datasets/02dba161-fdb7-48ae-a4bb-bd6ef017c36d/current/VEG_COMP_LYR_R1_POLY_2020.gdb.zip
-wget --trust-server-names -qNP "$TMP" https://pub.data.gov.bc.ca/datasets/02dba161-fdb7-48ae-a4bb-bd6ef017c36d/2019/VEG_COMP_LYR_R1_POLY_2019.gdb.zip
-wget --trust-server-names -qNP "$TMP" https://pub.data.gov.bc.ca/datasets/02dba161-fdb7-48ae-a4bb-bd6ef017c36d/2018/VEG_COMP_LYR_R1_POLY_2018.gdb.zip
-
-
-# Unzipping the files is problematic, zip doesn't like the large archives.
-# This temp file workaround does the job:
-# https://stackoverflow.com/questions/31481701/how-to-extract-files-from-a-large-30gb-zip-file-on-linux-server
-
-# extract and load to pg
-echo "Loading 2020 VEG_COMP_LYR_R1_POLY"
-zip -FF $TMP/VEG_COMP_LYR_R1_POLY_2020.gdb.zip --out tmp.zip -fz
-unzip tmp.zip
+# load to postgres
+psql -v ON_ERROR_STOP=1 $DATABASE_URL -c "CREATE SCHEMA IF NOT EXISTS whse_forest_vegetation"
 ogr2ogr \
    -progress \
    --config PG_USE_COPY YES \
    -t_srs EPSG:3005 \
    -dim XY \
    -f PostgreSQL \
-   PG:"$PGOGR" \
+   PG:$DATABASE_URL \
    -overwrite \
    -lco GEOMETRY_NAME=geom \
    -lco SPATIAL_INDEX=NONE \
    -lco FID=FEATURE_ID \
    -lco FID64=TRUE \
    -nln whse_forest_vegetation.veg_comp_lyr_r1_poly \
-   VEG_COMP_LYR_R1_POLY_2020.gdb \
+   /tmp/VEG_COMP_LYR_R1_POLY_$year.gdb.zip \
    VEG_COMP_LYR_R1_POLY
-rm tmp.zip
-rm -r VEG_COMP_LYR_R1_POLY_2020.gdb
 
-echo "Loading 2019 VEG_COMP_LYR_R1_POLY"
-zip -FF $TMP/VEG_COMP_LYR_R1_POLY_2019.gdb.zip --out tmp.zip -fz
-unzip tmp.zip
-ogr2ogr \
-   -progress \
-   --config PG_USE_COPY YES \
-   -t_srs EPSG:3005 \
-   -dim XY \
-   -f PostgreSQL \
-   PG:"$PGOGR" \
-   -overwrite \
-   -lco GEOMETRY_NAME=geom \
-   -lco SPATIAL_INDEX=NONE \
-   -lco FID=FEATURE_ID \
-   -lco FID64=TRUE \
-   -nln whse_forest_vegetation.veg_comp_lyr_r1_poly_2019 \
-   VEG_COMP_LYR_R1_POLY.gdb \
-   VEG_COMP_LYR_R1_POLY
-rm tmp.zip
-rm -r VEG_COMP_LYR_R1_POLY.gdb
+# index columns of interest
+psql -v ON_ERROR_STOP=1 $DATABASE_URL -c "CREATE INDEX ON whse_forest_vegetation.veg_comp_lyr_r1_poly (for_mgmt_land_base_ind); \
+   CREATE INDEX ON whse_forest_vegetation.veg_comp_lyr_r1_poly (inventory_standard_cd); \
+   CREATE INDEX ON whse_forest_vegetation.veg_comp_lyr_r1_poly (non_productive_descriptor_cd); \
+   CREATE INDEX ON whse_forest_vegetation.veg_comp_lyr_r1_poly (species_pct_1); \
+   CREATE INDEX ON whse_forest_vegetation.veg_comp_lyr_r1_poly (species_cd_1); \
+   CREATE INDEX ON whse_forest_vegetation.veg_comp_lyr_r1_poly (site_index); \
+   CREATE INDEX ON whse_forest_vegetation.veg_comp_lyr_r1_poly (bclcs_level_1); \
+   CREATE INDEX ON whse_forest_vegetation.veg_comp_lyr_r1_poly (bclcs_level_2); \
+   CREATE INDEX ON whse_forest_vegetation.veg_comp_lyr_r1_poly (bclcs_level_3); \
+   CREATE INDEX ON whse_forest_vegetation.veg_comp_lyr_r1_poly (bclcs_level_4); \
+   CREATE INDEX ON whse_forest_vegetation.veg_comp_lyr_r1_poly (bclcs_level_5); \
+   CREATE INDEX ON whse_forest_vegetation.veg_comp_lyr_r1_poly (map_id); \
+   CREATE INDEX ON whse_forest_vegetation.veg_comp_lyr_r1_poly USING GIST (geom);"
 
-echo "Loading 2018 VEG_COMP_LYR_R1_POLY"
-zip -FF $TMP/VEG_COMP_LYR_R1_POLY_2018.gdb.zip --out tmp.zip -fz
-unzip tmp.zip
-ogr2ogr \
-   -progress \
-   --config PG_USE_COPY YES \
-   -t_srs EPSG:3005 \
-   -dim XY \
-   -f PostgreSQL \
-   PG:"$PGOGR" \
-   -overwrite \
-   -lco GEOMETRY_NAME=geom \
-   -lco SPATIAL_INDEX=NONE \
-   -lco FID=FEATURE_ID \
-   -lco FID64=TRUE \
-   -nln whse_forest_vegetation.veg_comp_lyr_r1_poly_2018 \
-   VEG_COMP_LYR_R1_POLY.gdb \
-   VEG_COMP_LYR_R1_POLY
-rm tmp.zip
-rm -r VEG_COMP_LYR_R1_POLY.gdb
-
-# with data load completed, create indexes
-# echo "Indexing"
-for TABLE in veg_comp_lyr_r1_poly veg_comp_lyr_r1_poly_2019 veg_comp_lyr_r1_poly_2018
-do
-   psql --single-transaction --dbname=$PGDATABASE --quiet --command="
-   CREATE INDEX ON whse_forest_vegetation.$TABLE (for_mgmt_land_base_ind);
-   CREATE INDEX ON whse_forest_vegetation.$TABLE (inventory_standard_cd);
-   CREATE INDEX ON whse_forest_vegetation.$TABLE (non_productive_descriptor_cd);
-   CREATE INDEX ON whse_forest_vegetation.$TABLE (species_pct_1);
-   CREATE INDEX ON whse_forest_vegetation.$TABLE (species_cd_1);
-   CREATE INDEX ON whse_forest_vegetation.$TABLE (site_index);
-   CREATE INDEX ON whse_forest_vegetation.$TABLE (bclcs_level_1);
-   CREATE INDEX ON whse_forest_vegetation.$TABLE (bclcs_level_2);
-   CREATE INDEX ON whse_forest_vegetation.$TABLE (bclcs_level_3);
-   CREATE INDEX ON whse_forest_vegetation.$TABLE (bclcs_level_4);
-   CREATE INDEX ON whse_forest_vegetation.$TABLE (bclcs_level_5);
-   CREATE INDEX ON whse_forest_vegetation.$TABLE (map_id);
-   CREATE INDEX ON whse_forest_vegetation.$TABLE USING GIST (geom);"
-done
+# cleanup
+rm /tmp/VEG_COMP_LYR_R1_POLY_$year.gdb.zip
